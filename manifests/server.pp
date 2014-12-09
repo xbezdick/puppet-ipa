@@ -81,26 +81,6 @@ class ipa::server(
 	#$vardir = $::ipa::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::ipa::vardir::module_vardir, '\/$', '')
 
-	case $::osfamily {
-		'RedHat': {
-			if $::operatingsystem == 'Fedora' {
-				$ipa_server_pkgname = 'freeipa-server'
-			} else {
-				$ipa_server_pkgname = 'ipa-server'
-				package { 'python-argparse':		# used by diff.py
-					ensure => present,
-					before => [
-						Package['ipa-server'],
-						File["${vardir}/diff.py"],
-					],
-				}
-			}
-		}
-		default: {
-			fail('Unsupported OS')
-		}
-	}
-
 	if "${vip}" != '' {
 		if ! ($vip =~ /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/) {
 			fail('You must specify a valid VIP to use.')
@@ -222,13 +202,17 @@ class ipa::server(
 		}
 	}
 
+	package { 'python-argparse':		# used by diff.py
+		ensure => present,
+		before => Package['ipa-server'],
+	}
+
 	package { 'pwgen':			# used to generate passwords
 		ensure => present,
 		before => Package['ipa-server'],
 	}
 
 	package { 'ipa-server':
-		name => $ipa_server_pkgname,
 		ensure => present,
 	}
 
@@ -241,6 +225,7 @@ class ipa::server(
 		ensure => present,
 		require => [
 			Package['ipa-server'],
+			Package['python-argparse'],
 			File["${vardir}/"],
 		],
 	}
