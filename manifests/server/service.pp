@@ -223,7 +223,7 @@ define ipa::server::service(
 		comment => "${comment}",
 		ensure => $ensure,
 		require => Ipa::Client::Host["${name}"],	# should match!
-# TODO: FIXME:		tag => "${name}",					# bonus
+		tag => "${name}",					# bonus
 	}
 }
 
